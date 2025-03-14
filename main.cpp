@@ -1,6 +1,9 @@
+#include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <stdlib.h>
+#include <thread>
 
 #define MOV 0x01
 #define ADD 0x02
@@ -47,12 +50,18 @@ public:
     void jne(short line){
         commands.push_back((command){JNE, line, 0});
     }
+    // milliseconds
+    void set_delay(int delay){
+        m_delay = delay;
+    }  
 
     void run(){
         command cmd;
         char is_translate = 0;
         for(int i = 0; i < commands.size(); ++i){
             cmd = commands[i];
+            system("clear");
+            print_regs();
             switch(cmd.opcode){
                 case MOV:
                     registers[cmd.frst] = cmd.scnd;
@@ -85,6 +94,7 @@ public:
                     }
             }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(m_delay));
     }
 
     void print_regs(){
@@ -96,10 +106,12 @@ public:
 private:
     std::vector<command> commands;
     short registers[16];
+    int m_delay = 0;
 };
 
 int main(){
     Cpu cpu;
+    cpu.set_delay(500);
     cpu.mov(0, 4);
     cpu.mov(1, 2);
     cpu.add(0,1);
@@ -110,5 +122,4 @@ int main(){
     cpu.cmp(0, 40);
     cpu.jne(5);
     cpu.run();
-    cpu.print_regs();
 }
