@@ -11,6 +11,7 @@
 #define CMP 0x04
 #define JE  0x05
 #define JNE 0x06
+#define JUMPTO 0x07
 
 struct command{
     uint8_t opcode;
@@ -50,6 +51,11 @@ public:
     void jne(short line){
         commands.push_back((command){JNE, line, 0});
     }
+
+    void jumpto(short line){
+        commands.push_back((command){JUMPTO, line, 0});
+    }
+
     // milliseconds
     void set_delay(int delay){
         m_delay = delay;
@@ -59,6 +65,7 @@ public:
         command cmd;
         char is_translate = 0;
         for(int i = 0; i < commands.size(); ++i){
+            std::this_thread::sleep_for(std::chrono::milliseconds(m_delay));
             cmd = commands[i];
             system("clear");
             print_regs();
@@ -87,14 +94,18 @@ public:
                         i = cmd.frst;
                         is_translate = 0;
                     }
+                    break;
                 case JNE:
                     if(is_translate == -1){
                         i = cmd.frst;
                         is_translate = 0;
                     }
+                    break;
+                case JUMPTO:
+                    i = cmd.frst;
+                    break;
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(m_delay));
     }
 
     void print_regs(){
@@ -112,14 +123,18 @@ private:
 int main(){
     Cpu cpu;
     cpu.set_delay(500);
-    cpu.mov(0, 4);
-    cpu.mov(1, 2);
-    cpu.add(0,1);
-    cpu.mov(6, 3);
-    cpu.mov(3, 1);
-    cpu.sub(0, 6);
-    cpu.add(0, 3);
-    cpu.cmp(0, 40);
-    cpu.jne(5);
+    char sign;
+    int a,b;
+    std::cin >> a;
+    std::cin >> sign;
+    std::cin >> b;
+    cpu.mov(0, a);
+    cpu.mov(1, b);
+    cpu.mov(2, sign);
+    cpu.cmp(2, '+');
+    cpu.jne(8);
+    cpu.add(0, 1);
+    cpu.jumpto(9);
+    cpu.sub(0, 1);
     cpu.run();
 }
